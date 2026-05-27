@@ -5,25 +5,252 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BCCFA Ref Portal</title>
     <style>
-        /* INSERT ENTIRE STYLING/CSS CODE FROM CODEPEN HERE */
-        body { font-family: sans-serif; background-color: #002244; color: white; padding: 15px; }
-        /* Keep your verified blue button frames, PIN inputs, and container layouts here */
+        /* Modern Football Theme & Styling */
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            background-color: #002244; 
+            color: white; 
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: #001530;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            box-sizing: border-box;
+        }
+        h1 {
+            text-align: center;
+            color: #00bfff;
+            margin-top: 0;
+            font-size: 24px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #dddddd;
+            font-size: 14px;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #004488;
+            background-color: #002244;
+            color: white;
+            border-radius: 6px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        input:focus, select:focus {
+            border-color: #00bfff;
+            outline: none;
+        }
+        .score-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .score-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        .score-input {
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #002c5c;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            border-left: 4px solid #00bfff;
+        }
+        .checkbox-group input {
+            width: auto;
+            transform: scale(1.3);
+        }
+        .pin-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px dashed #004488;
+        }
+        .submit-btn {
+            width: 100%;
+            background-color: #00bfff;
+            color: #001530;
+            border: none;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 15px;
+        }
+        .submit-btn:active {
+            background-color: #0088cc;
+        }
+        #statusMessage {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+        }
+        .success { background-color: #00aa55; color: white; }
+        .error { background-color: #cc3333; color: white; }
     </style>
 </head>
 <body>
 
-    <!-- INSERT ENTIRE LAYOUT/HTML CODE FROM CODEPEN HERE -->
-    <!-- Include the forms, game selectors, PIN pads, and coach checkbox locks -->
+    <div class="container">
+        <h1>BCCFA Ref Portal</h1>
+        
+        <form id="scoreForm">
+            <!-- Game Details -->
+            <div class="form-group">
+                <label for="gameId">Game ID / Match Number</label>
+                <input type="text" id="gameId" placeholder="e.g. 104" required>
+            </div>
 
+            <div class="form-group">
+                <label for="field">Field Location</label>
+                <select id="field" required>
+                    <option value="">-- Select Field --</option>
+                    <option value="Field 1">Field 1</option>
+                    <option value="Field 2">Field 2</option>
+                    <option value="Field 3">Field 3</option>
+                    <option value="Field 4">Field 4</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="division">Division</label>
+                <select id="division" required>
+                    <option value="">-- Select Division --</option>
+                    <option value="U10">U10</option>
+                    <option value="U12">U12</option>
+                    <option value="U14">U14</option>
+                </select>
+            </div>
+
+            <!-- Team A Scoring -->
+            <div class="score-row">
+                <div class="form-group">
+                    <label for="teamA">Home Team</label>
+                    <input type="text" id="teamA" placeholder="Team Name" required>
+                </div>
+                <div class="form-group" style="max-width: 100px;">
+                    <label for="scoreA">Score</label>
+                    <input type="number" id="scoreA" class="score-input" min="0" placeholder="0" required>
+                </div>
+            </div>
+
+            <!-- Team B Scoring -->
+            <div class="score-row">
+                <div class="form-group">
+                    <label for="teamB">Away Team</label>
+                    <input type="text" id="teamB" placeholder="Team Name" required>
+                </div>
+                <div class="form-group" style="max-width: 100px;">
+                    <label for="scoreB">Score</label>
+                    <input type="number" id="scoreB" class="score-input" min="0" placeholder="0" required>
+                </div>
+            </div>
+
+            <!-- Coach Verification Checkboxes -->
+            <div class="checkbox-group">
+                <input type="checkbox" id="coachVerifyA" required>
+                <label for="coachVerifyA">Home Coach confirmed score accuracy</label>
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="coachVerifyB" required>
+                <label for="coachVerifyB">Away Coach confirmed score accuracy</label>
+            </div>
+
+            <!-- Security Pin Validation Section -->
+            <div class="form-group pin-section">
+                <label for="refPin">Referee Security PIN</label>
+                <input type="password" id="refPin" maxlength="4" pattern="\d{4}" inputmode="numeric" placeholder="Enter 4-Digit PIN" required>
+            </div>
+
+            <button type="submit" class="submit-btn">Submit Official Scores</button>
+        </form>
+
+        <div id="statusMessage"></div>
+    </div>
+
+    <!-- Communication Frontend Logic -->
     <script>
-        // INSERT ENTIRE SCRIPT/JAVASCRIPT LOGIC FROM CODEPEN HERE
-        // Crucial Connection Variable:
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbysxHgBrH-TK7aYM1yYFiyZ_LhIv_Z_QYHH_AiKK5xevnF0WhmPumY8-JEB7ob5CeefoA/exec
-";
+        // The secure Google Web App Endpoint URL link configured for BCCFA Sheet deployment
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbysxHgBrH-TK7aYM1yYFiyZ_LhIv_Z_QYHH_AiKK5xevnF0WhmPumY8-JEB7ob5CeefoA/exec";
 
-        // Must include the corrected PIN checking logic (PIN: 2026)
-        // Must include the corrected iframe handling snippet:
-        // iframe.style.display = 'none'; (Verified single style call)
+        document.getElementById('scoreForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const pinInput = document.getElementById('refPin').value;
+            const statusDiv = document.getElementById('statusMessage');
+            
+            // Security PIN Check (Configured to 2026)
+            if (pinInput !== '2026') {
+                statusDiv.innerText = "Error: Invalid Referee Security PIN.";
+                statusDiv.className = "error";
+                statusDiv.style.display = "block";
+                return;
+            }
+
+            statusDiv.innerText = "Transmitting data to master ledger...";
+            statusDiv.className = "";
+            statusDiv.style.display = "block";
+
+            // Map frontend elements cleanly to back-end parameters
+            const formData = new URLSearchParams();
+            formData.append('gameId', document.getElementById('gameId').value);
+            formData.append('field', document.getElementById('field').value);
+            formData.append('division', document.getElementById('division').value);
+            formData.append('teamA', document.getElementById('teamA').value);
+            formData.append('scoreA', document.getElementById('scoreA').value);
+            formData.append('teamB', document.getElementById('teamB').value);
+            formData.append('scoreB', document.getElementById('scoreB').value);
+
+            // POST transmission payload request execution
+            fetch(WEB_APP_URL, {
+                method: 'POST',
+                mode: 'no-cors', // Bypasses CORS browser restriction rules natively
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString()
+            })
+            .then(() => {
+                statusDiv.innerText = "Success! Scores officially posted.";
+                statusDiv.className = "success";
+                document.getElementById('scoreForm').reset();
+            })
+            .catch(error => {
+                statusDiv.innerText = "Submission failed. Please check network connection.";
+                statusDiv.className = "error";
+                console.error('Error:', error);
+            });
+        });
     </script>
 </body>
 </html>
