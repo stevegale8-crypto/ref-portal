@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BCCFA Ref Portal</title>
     <style>
+        /* Modern Football Theme & Styling */
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
             background-color: #002244; 
@@ -107,10 +108,6 @@
         .submit-btn:active {
             background-color: #0088cc;
         }
-        .submit-btn:disabled {
-            background-color: #005577;
-            cursor: not-allowed;
-        }
         #statusMessage {
             margin-top: 15px;
             padding: 12px;
@@ -124,10 +121,12 @@
     </style>
 </head>
 <body>
+
     <div class="container">
         <h1>BCCFA Ref Portal</h1>
         
         <form id="scoreForm">
+            <!-- Game Details -->
             <div class="form-group">
                 <label for="gameId">Game ID / Match Number</label>
                 <input type="text" id="gameId" placeholder="e.g. 104" required>
@@ -154,6 +153,7 @@
                 </select>
             </div>
 
+            <!-- Team A Scoring -->
             <div class="score-row">
                 <div class="form-group">
                     <label for="teamA">Home Team</label>
@@ -161,10 +161,11 @@
                 </div>
                 <div class="form-group" style="max-width: 100px;">
                     <label for="scoreA">Score</label>
-                    <input type="number" id="scoreA" class="score-input" min="0" max="99" placeholder="0" required>
+                    <input type="number" id="scoreA" class="score-input" min="0" placeholder="0" required>
                 </div>
             </div>
 
+            <!-- Team B Scoring -->
             <div class="score-row">
                 <div class="form-group">
                     <label for="teamB">Away Team</label>
@@ -172,10 +173,11 @@
                 </div>
                 <div class="form-group" style="max-width: 100px;">
                     <label for="scoreB">Score</label>
-                    <input type="number" id="scoreB" class="score-input" min="0" max="99" placeholder="0" required>
+                    <input type="number" id="scoreB" class="score-input" min="0" placeholder="0" required>
                 </div>
             </div>
 
+            <!-- Coach Verification Checkboxes -->
             <div class="checkbox-group">
                 <input type="checkbox" id="coachVerifyA" required>
                 <label for="coachVerifyA">Home Coach confirmed score accuracy</label>
@@ -186,59 +188,67 @@
                 <label for="coachVerifyB">Away Coach confirmed score accuracy</label>
             </div>
 
+            <!-- Security Pin Validation Section -->
             <div class="form-group pin-section">
                 <label for="refPin">Referee Security PIN</label>
                 <input type="password" id="refPin" maxlength="4" pattern="\d{4}" inputmode="numeric" placeholder="Enter 4-Digit PIN" required>
             </div>
 
-            <button type="submit" class="submit-btn" id="submitBtn">Submit Official Scores</button>
+            <button type="submit" class="submit-btn">Submit Official Scores</button>
         </form>
 
         <div id="statusMessage"></div>
     </div>
 
+    <!-- Communication Frontend Logic -->
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyjDQJiqbHj__yDxi4veC6k0Td1VxauefTg7R3vnQqloMYVbHLe-AivKH6AO3YZE-wVJQ/exec";
+        // Fresh target endpoint linked to your brand new spreadsheet structure
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyuRw5YSc6_FxVICHS_PHDHSceQ5x6T3SjdihYlgwYTUFnCEnyI_bGemWLVd0CkZp37/exec";
 
         document.getElementById('scoreForm').addEventListener('submit', function(e) {
             e.preventDefault();
-
+            
+            const pinInput = document.getElementById('refPin').value;
             const statusDiv = document.getElementById('statusMessage');
-            const submitBtn = document.getElementById('submitBtn');
+            
+            // Security PIN Check (Configured to 2026)
+            if (pinInput !== '2026') {
+                statusDiv.innerText = "Error: Invalid Referee Security PIN.";
+                statusDiv.className = "error";
+                statusDiv.style.display = "block";
+                return;
+            }
 
             statusDiv.innerText = "Transmitting data to master ledger...";
             statusDiv.className = "";
             statusDiv.style.display = "block";
-            submitBtn.disabled = true;
 
+            // Map frontend elements cleanly to back-end parameters
             const formData = new URLSearchParams();
-            formData.append('gameId',   document.getElementById('gameId').value);
-            formData.append('field',    document.getElementById('field').value);
+            formData.append('gameId', document.getElementById('gameId').value);
+            formData.append('field', document.getElementById('field').value);
             formData.append('division', document.getElementById('division').value);
-            formData.append('teamA',    document.getElementById('teamA').value);
-            formData.append('scoreA',   document.getElementById('scoreA').value);
-            formData.append('teamB',    document.getElementById('teamB').value);
-            formData.append('scoreB',   document.getElementById('scoreB').value);
-            formData.append('pin',      document.getElementById('refPin').value);
+            formData.append('teamA', document.getElementById('teamA').value);
+            formData.append('scoreA', document.getElementById('scoreA').value);
+            formData.append('teamB', document.getElementById('teamB').value);
+            formData.append('scoreB', document.getElementById('scoreB').value);
 
+            // POST transmission payload request execution
             fetch(WEB_APP_URL, {
                 method: 'POST',
-                mode: 'no-cors',
+                mode: 'no-cors', // Bypasses CORS browser restriction rules natively
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: formData.toString()
             })
             .then(() => {
-                statusDiv.innerText = "Submitted! Verify with your league coordinator if unsure.";
+                statusDiv.innerText = "Success! Scores officially posted.";
                 statusDiv.className = "success";
                 document.getElementById('scoreForm').reset();
             })
             .catch(error => {
-                statusDiv.innerText = "Submission failed. Please check your network connection.";
+                statusDiv.innerText = "Submission failed. Please check network connection.";
                 statusDiv.className = "error";
                 console.error('Error:', error);
-            })
-            .finally(() => {
-                submitBtn.disabled = false;
             });
         });
     </script>
