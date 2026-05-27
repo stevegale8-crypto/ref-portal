@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BCCFA Ref Portal</title>
     <style>
-        /* Modern Football Theme & Styling */
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
             background-color: #002244; 
@@ -108,6 +107,10 @@
         .submit-btn:active {
             background-color: #0088cc;
         }
+        .submit-btn:disabled {
+            background-color: #005577;
+            cursor: not-allowed;
+        }
         #statusMessage {
             margin-top: 15px;
             padding: 12px;
@@ -159,7 +162,7 @@
                 </div>
                 <div class="form-group" style="max-width: 100px;">
                     <label for="scoreA">Score</label>
-                    <input type="number" id="scoreA" class="score-input" min="0" placeholder="0" required>
+                    <input type="number" id="scoreA" class="score-input" min="0" max="99" placeholder="0" required>
                 </div>
             </div>
 
@@ -170,7 +173,7 @@
                 </div>
                 <div class="form-group" style="max-width: 100px;">
                     <label for="scoreB">Score</label>
-                    <input type="number" id="scoreB" class="score-input" min="0" placeholder="0" required>
+                    <input type="number" id="scoreB" class="score-input" min="0" max="99" placeholder="0" required>
                 </div>
             </div>
 
@@ -189,59 +192,54 @@
                 <input type="password" id="refPin" maxlength="4" pattern="\d{4}" inputmode="numeric" placeholder="Enter 4-Digit PIN" required>
             </div>
 
-            <button type="submit" class="submit-btn">Submit Official Scores</button>
-        </form>Targeting your authorized script endpoint...
+            <button type="submit" class="submit-btn" id="submitBtn">Submit Official Scores</button>
+        </form>
+
         <div id="statusMessage"></div>
     </div>
 
     <script>
-        // Updated secure Google Web App Endpoint URL link targeting the newly authorized script 
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwHF9gRDO6lkHOJM2K1zkORRfBiqBDtcKL2S09v1wwIzsADfMHlEo20dPgSup_gZJo-iQ/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxd0WucrbPIRabPyPwCNY9-zL4sb5ZH12L-eZdonFcMD4phD9CYfnAlEsckPUUB-Z4XmQ/exec";
 
         document.getElementById('scoreForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            
-            const pinInput = document.getElementById('refPin').value;
+
             const statusDiv = document.getElementById('statusMessage');
-            
-            // Security PIN Check (Configured to 2026)
-            if (pinInput !== '2026') {
-                statusDiv.innerText = "Error: Invalid Referee Security PIN.";
-                statusDiv.className = "error";
-                statusDiv.style.display = "block";
-                return;
-            }
+            const submitBtn = document.getElementById('submitBtn');
 
             statusDiv.innerText = "Transmitting data to master ledger...";
             statusDiv.className = "";
             statusDiv.style.display = "block";
+            submitBtn.disabled = true;
 
-            // Map frontend elements cleanly to back-end parameters
             const formData = new URLSearchParams();
-            formData.append('gameId', document.getElementById('gameId').value);
-            formData.append('field', document.getElementById('field').value);
+            formData.append('gameId',   document.getElementById('gameId').value);
+            formData.append('field',    document.getElementById('field').value);
             formData.append('division', document.getElementById('division').value);
-            formData.append('teamA', document.getElementById('teamA').value);
-            formData.append('scoreA', document.getElementById('scoreA').value);
-            formData.append('teamB', document.getElementById('teamB').value);
-            formData.append('scoreB', document.getElementById('scoreB').value);
+            formData.append('teamA',    document.getElementById('teamA').value);
+            formData.append('scoreA',   document.getElementById('scoreA').value);
+            formData.append('teamB',    document.getElementById('teamB').value);
+            formData.append('scoreB',   document.getElementById('scoreB').value);
+            formData.append('pin',      document.getElementById('refPin').value);
 
-            // POST transmission payload request execution
             fetch(WEB_APP_URL, {
                 method: 'POST',
-                mode: 'no-cors', // Bypasses CORS browser restriction rules natively
+                mode: 'no-cors',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: formData.toString()
             })
             .then(() => {
-                statusDiv.innerText = "Success! Scores officially posted.";
+                statusDiv.innerText = "Submitted! Verify with your league coordinator if unsure.";
                 statusDiv.className = "success";
                 document.getElementById('scoreForm').reset();
             })
             .catch(error => {
-                statusDiv.innerText = "Submission failed. Please check network connection.";
+                statusDiv.innerText = "Submission failed. Please check your network connection.";
                 statusDiv.className = "error";
                 console.error('Error:', error);
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
             });
         });
     </script>
