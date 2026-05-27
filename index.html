@@ -126,7 +126,6 @@
         <h1>BCCFA Ref Portal</h1>
         
         <form id="scoreForm">
-            <!-- Game Details -->
             <div class="form-group">
                 <label for="gameId">Game ID / Match Number</label>
                 <input type="text" id="gameId" placeholder="e.g. 104" required>
@@ -153,7 +152,6 @@
                 </select>
             </div>
 
-            <!-- Team A Scoring -->
             <div class="score-row">
                 <div class="form-group">
                     <label for="teamA">Home Team</label>
@@ -165,7 +163,6 @@
                 </div>
             </div>
 
-            <!-- Team B Scoring -->
             <div class="score-row">
                 <div class="form-group">
                     <label for="teamB">Away Team</label>
@@ -177,7 +174,6 @@
                 </div>
             </div>
 
-            <!-- Coach Verification Checkboxes -->
             <div class="checkbox-group">
                 <input type="checkbox" id="coachVerifyA" required>
                 <label for="coachVerifyA">Home Coach confirmed score accuracy</label>
@@ -188,7 +184,6 @@
                 <label for="coachVerifyB">Away Coach confirmed score accuracy</label>
             </div>
 
-            <!-- Security Pin Validation Section -->
             <div class="form-group pin-section">
                 <label for="refPin">Referee Security PIN</label>
                 <input type="password" id="refPin" maxlength="4" pattern="\d{4}" inputmode="numeric" placeholder="Enter 4-Digit PIN" required>
@@ -200,10 +195,13 @@
         <div id="statusMessage"></div>
     </div>
 
-    <!-- Communication Frontend Logic -->
     <script>
-        // Fresh target endpoint linked to your brand new spreadsheet structure
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyuRw5YSc6_FxVICHS_PHDHSceQ5x6T3SjdihYlgwYTUFnCEnyI_bGemWLVd0CkZp37/exec";
+        // Airtable Credentials Linked Directly to the Grid
+        const BASE_ID = "app470bf3P7D9cXVk";
+        const TABLE_NAME = "BCCFA_Game_Data";
+        const API_TOKEN = "Pat2Rg2kfKES0gVec.daee878fd43f9dda96a18aec2ec5480f2975a3a663ca5ce53c3d89feca148545";
+
+        const AIRTABLE_URL = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}`;
 
         document.getElementById('scoreForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -223,22 +221,33 @@
             statusDiv.className = "";
             statusDiv.style.display = "block";
 
-            // Map frontend elements cleanly to back-end parameters
-            const formData = new URLSearchParams();
-            formData.append('gameId', document.getElementById('gameId').value);
-            formData.append('field', document.getElementById('field').value);
-            formData.append('division', document.getElementById('division').value);
-            formData.append('teamA', document.getElementById('teamA').value);
-            formData.append('scoreA', document.getElementById('scoreA').value);
-            formData.append('teamB', document.getElementById('teamB').value);
-            formData.append('scoreB', document.getElementById('scoreB').value);
+            // Structure data cleanly for Airtable API requirements
+            const payload = {
+                fields: {
+                    gameId: document.getElementById('gameId').value,
+                    field: document.getElementById('field').value,
+                    division: document.getElementById('division').value,
+                    teamA: document.getElementById('teamA').value,
+                    scoreA: document.getElementById('scoreA').value,
+                    teamB: document.getElementById('teamB').value,
+                    scoreB: document.getElementById('scoreB').value
+                }
+            };
 
-            // POST transmission payload request execution
-            fetch(WEB_APP_URL, {
+            // Post straight to Airtable database endpoint
+            fetch(AIRTABLE_URL, {
                 method: 'POST',
-                mode: 'no-cors', // Bypasses CORS browser restriction rules natively
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: formData.toString()
+                headers: {
+                    'Authorization': `Bearer ${API_TOKEN}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Airtable connection rejected payload');
+                }
+                return response.json();
             })
             .then(() => {
                 statusDiv.innerText = "Success! Scores officially posted.";
@@ -246,7 +255,7 @@
                 document.getElementById('scoreForm').reset();
             })
             .catch(error => {
-                statusDiv.innerText = "Submission failed. Please check network connection.";
+                statusDiv.innerText = "Submission failed. Contact league administrator.";
                 statusDiv.className = "error";
                 console.error('Error:', error);
             });
