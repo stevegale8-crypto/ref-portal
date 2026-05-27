@@ -126,7 +126,6 @@
         <h1>BCCFA Ref Portal</h1>
         
         <form id="scoreForm">
-            <!-- Game Details -->
             <div class="form-group">
                 <label for="gameId">Game ID / Match Number</label>
                 <input type="text" id="gameId" placeholder="e.g. 104" required>
@@ -153,7 +152,6 @@
                 </select>
             </div>
 
-            <!-- Team A Scoring -->
             <div class="score-row">
                 <div class="form-group">
                     <label for="teamA">Home Team</label>
@@ -165,7 +163,6 @@
                 </div>
             </div>
 
-            <!-- Team B Scoring -->
             <div class="score-row">
                 <div class="form-group">
                     <label for="teamB">Away Team</label>
@@ -177,7 +174,6 @@
                 </div>
             </div>
 
-            <!-- Coach Verification Checkboxes -->
             <div class="checkbox-group">
                 <input type="checkbox" id="coachVerifyA" required>
                 <label for="coachVerifyA">Home Coach confirmed score accuracy</label>
@@ -188,7 +184,6 @@
                 <label for="coachVerifyB">Away Coach confirmed score accuracy</label>
             </div>
 
-            <!-- Security Pin Validation Section -->
             <div class="form-group pin-section">
                 <label for="refPin">Referee Security PIN</label>
                 <input type="password" id="refPin" maxlength="4" pattern="\d{4}" inputmode="numeric" placeholder="Enter 4-Digit PIN" required>
@@ -200,10 +195,9 @@
         <div id="statusMessage"></div>
     </div>
 
-    <!-- Communication Frontend Logic -->
     <script>
         // The secure Google Web App Endpoint URL link configured for BCCFA Sheet deployment
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzqtx1m5KE1wM7K_p4lQi5kGZFVuYkHV1SM4fBEunhxwbkesZv0otSJKWNdfPKzqj38rg/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby8Sapx3u2BTzyL9xviKIYK33KWfSNCTcSVeJTmanlV5dH7OxWqkaXPixecasiASSNrUA/exec";
 
         document.getElementById('scoreForm').addEventListener('submit', function(e) {
             e.preventDefault();
