@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BCCFA Ref Portal</title>
     <style>
-        /* Modern Football Theme & Styling */
+        /* Keeping your excellent, modern football theme layout styling */
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
             background-color: #002244; 
@@ -135,10 +135,12 @@
                 <label for="field">Field Location</label>
                 <select id="field" required>
                     <option value="">-- Select Field --</option>
-                    <option value="Field 1">Field 1</option>
-                    <option value="Field 2">Field 2</option>
-                    <option value="Field 3">Field 3</option>
-                    <option value="Field 4">Field 4</option>
+                    <option value="1A">Field 1A</option>
+                    <option value="1B">Field 1B</option>
+                    <option value="1C">Field 1C</option>
+                    <option value="1D">Field 1D</option>
+                    <option value="2A">Field 2A</option>
+                    <option value="2B">Field 2B</option>
                 </select>
             </div>
 
@@ -189,76 +191,80 @@
                 <input type="password" id="refPin" maxlength="4" pattern="\d{4}" inputmode="numeric" placeholder="Enter 4-Digit PIN" required>
             </div>
 
-            <button type="submit" class="submit-btn">Submit Official Scores</button>
+            <button type="submit" class="submit-btn">Submit to Commissioner</button>
         </form>
 
         <div id="statusMessage"></div>
     </div>
 
-    <script>
-        // Airtable Credentials Linked Directly to the Grid
-        const BASE_ID = "app470bf3P7D9cXVk";
-        const TABLE_NAME = "BCCFA_Game_Data";
-        const API_TOKEN = "Pat2Rg2kfKES0gVec.daee878fd43f9dda96a18aec2ec5480f2975a3a663ca5ce53c3d89feca148545";
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        const AIRTABLE_URL = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}`;
+        // Your Web App's Firebase Configuration (Replace with your actual keys from Firebase Console)
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
 
-        document.getElementById('scoreForm').addEventListener('submit', function(e) {
+        // Initialize Firebase & Firestore Database
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        document.getElementById('scoreForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const pinInput = document.getElementById('refPin').value;
+            const gameId = document.getElementById('gameId').value;
             const statusDiv = document.getElementById('statusMessage');
             
-            // Security PIN Check (Configured to 2026)
-            if (pinInput !== '2026') {
-                statusDiv.innerText = "Error: Invalid Referee Security PIN.";
-                statusDiv.className = "error";
-                statusDiv.style.display = "block";
-                return;
-            }
-
-            statusDiv.innerText = "Transmitting data to master ledger...";
+            statusDiv.innerText = "Verifying referee credentials...";
             statusDiv.className = "";
             statusDiv.style.display = "block";
 
-            // Structure data cleanly for Airtable API requirements
-            const payload = {
-                fields: {
-                    gameId: document.getElementById('gameId').value,
+            try {
+                // Securely check PIN against the database instead of hardcoding it in HTML
+                const pinRef = doc(db, "refereePins", pinInput);
+                const pinSnap = await getDoc(pinRef);
+
+                if (!pinSnap.exists()) {
+                    statusDiv.innerText = "Error: Invalid Referee Security PIN.";
+                    statusDiv.className = "error";
+                    return;
+                }
+
+                statusDiv.innerText = "Transmitting data to real-time database...";
+
+                // Map form values out into our unified Game object scheme
+                const gamePayload = {
+                    gameId: gameId,
                     field: document.getElementById('field').value,
                     division: document.getElementById('division').value,
-                    teamA: document.getElementById('teamA').value,
-                    scoreA: document.getElementById('scoreA').value,
-                    teamB: document.getElementById('teamB').value,
-                    scoreB: document.getElementById('scoreB').value
-                }
-            };
+                    homeTeam: document.getElementById('teamA').value,
+                    homeScore: parseInt(document.getElementById('scoreA').value, 10),
+                    awayTeam: document.getElementById('teamB').value,
+                    awayScore: parseInt(document.getElementById('scoreB').value, 10),
+                    status: "Pending_Commissioner", // Enters the state pipeline
+                    lastUpdated: new Date().toISOString(),
+                    submittedByRef: pinSnap.data().refName || "Assigned Ref"
+                };
 
-            // Post straight to Airtable database endpoint
-            fetch(AIRTABLE_URL, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${API_TOKEN}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Airtable connection rejected payload');
-                }
-                return response.json();
-            })
-            .then(() => {
-                statusDiv.innerText = "Success! Scores officially posted.";
+                // Push straight to Firestore "games" collection
+                await setDoc(doc(db, "games", gameId), gamePayload);
+
+                statusDiv.innerText = "Success! Scores sent to Field Commissioner.";
                 statusDiv.className = "success";
                 document.getElementById('scoreForm').reset();
-            })
-            .catch(error => {
-                statusDiv.innerText = "Submission failed. Contact league administrator.";
+
+            } catch (error) {
+                statusDiv.innerText = "Submission failed. Grid network busy.";
                 statusDiv.className = "error";
-                console.error('Error:', error);
-            });
+                console.error('Firebase Error:', error);
+            }
         });
     </script>
 </body>
